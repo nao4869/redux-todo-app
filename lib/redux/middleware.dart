@@ -59,21 +59,3 @@ Future<AppState> loadedFromPrefs() async {
   }
   return AppState.initialState();
 }
-
-// // actual middleware
-// // next is function dispatcher to chain this middleware to next dispatcher if there is one
-// void appStateMiddleware(
-//     Store<AppState> store, action, NextDispatcher next) async {
-//   next(action);
-
-//   if (action is AddItemAction ||
-//       action is RemoveItemsAction ||
-//       action is RemoveItemsAction) {
-//     saveToPrefs(store.state);
-//   }
-
-//   if (action is GetItemsAction) {
-//     await loadedFromPrefs()
-//         .then((state) => store.dispatch(LoadedItemsAction(state.items)));
-//   }
-// }

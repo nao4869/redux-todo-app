@@ -83,6 +83,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.0"
+  flutter_redux_navigation:
+    dependency: "direct main"
+    description:
+      name: flutter_redux_navigation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -95,6 +102,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.4"
+  intl:
+    dependency: "direct main"
+    description:
+      name: intl
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.15.8"
   matcher:
     dependency: transitive
     description:
@@ -138,7 +152,7 @@ packages:
     source: hosted
     version: "2.0.5"
   redux:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: redux
       url: "https://pub.dartlang.org"

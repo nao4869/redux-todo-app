@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
 import 'package:redux/redux.dart';
 
 import 'package:redux_todo_app/models/model.dart';
@@ -27,8 +28,10 @@ class MyApp extends StatelessWidget {
       store: store,
       child: MaterialApp(
         title: 'Flutter Demo',
+        navigatorKey: NavigatorHolder.navigatorKey,
         theme: ThemeData.dark(),
         home: StoreBuilder<AppState>(
+          // dispatch -> 変更指示
           onInit: (store) => store.dispatch(
             GetItemsAction(),
           ),
@@ -119,7 +122,20 @@ class ItemListWidget extends StatelessWidget {
       children: model.items
           .map(
             (Item item) => ListTile(
-              title: Text(item.body),
+              title: InkWell(
+                onTap: () {
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => ,
+                  //     //settings: RouteSettings(arguments: institution.name),
+                  //   ),
+                  // );
+                },
+                child: Text(
+                  item.body,
+                ),
+              ),
               leading: IconButton(
                 icon: Icon(Icons.delete),
                 onPressed: () => model.onRemoveItem(item),

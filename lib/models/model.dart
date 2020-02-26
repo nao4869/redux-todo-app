@@ -43,9 +43,13 @@ class Item {
 
 class AppState {
   final List<Item> items;
+  
+  // for navigation
+  //final String name;
 
   const AppState({
     @required this.items,
+    //this.name,
   });
 
   // constructor take json item and covert into list
@@ -57,4 +61,5 @@ class AppState {
 
   // named constructor, immutable
   AppState.initialState() : items = List.unmodifiable(<Item>[]);
+  // factory AppState.changeName(String name) => AppState(items, name);
 }
