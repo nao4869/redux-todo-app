@@ -1,111 +1,166 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
+
+import 'package:redux_todo_app/models/model.dart';
+import 'package:redux_todo_app/redux/actions.dart';
+import 'package:redux_todo_app/redux/reducers.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+    final Store<AppState> store = Store<AppState>(
+      appStateReducer,
+      initialState: AppState.initialState(),
+    );
+
+    return StoreProvider<AppState>(
+      store: store,
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData.dark(),
+        home: MyHomePage(),
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text('Redux todo app'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
+      body: StoreConnector<AppState, _ViewModel>(
+        converter: (Store<AppState> store) => _ViewModel.create(
+            store), // takes store and convert into view model for descending widget
+        builder: (BuildContext context, _ViewModel viewModel) => Column(
+          // takes in whatever we return in coverter
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
+            AddItemWidget(viewModel), // call add item actions, text box
+            Expanded(
+              child: ItemListWidget(viewModel),
+            ), // display items list
+            RemoveItemsButton(viewModel), // call remove item actions
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+// *************** Add Item Widget, state ******************** //
+// all the widget recieves view model
+class AddItemWidget extends StatefulWidget {
+  final _ViewModel model;
+
+  AddItemWidget(this.model);
+
+  @override
+  _AddItemState createState() => _AddItemState();
+}
+
+// text form field for adding item
+class _AddItemState extends State<AddItemWidget> {
+  final TextEditingController controller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: 'Add an New Item',
+      ),
+      onSubmitted: (String s) {
+        widget.model.onAddItem(s);
+        controller.text = '';
+      },
+    );
+  }
+}
+// ***************************************** //
+
+// *************** Item List Widget, state ******************** //
+class ItemListWidget extends StatelessWidget {
+  final _ViewModel model;
+
+  ItemListWidget(this.model);
+
+  // display all of items in the app state
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: model.items
+          .map(
+            (Item item) => ListTile(
+              title: Text(item.body),
+              leading: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () => model.onRemoveItem(item),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+// ***************************************** //
+
+// *************** Item List Widget, state ******************** //
+class RemoveItemsButton extends StatelessWidget {
+  final _ViewModel model;
+
+  RemoveItemsButton(this.model);
+
+  // widget to display remove button
+  @override
+  Widget build(BuildContext context) {
+    return RaisedButton(
+      child: Text('Remove all items'),
+      onPressed: () => model.onRemoveItems(),
+    );
+  }
+}
+
+// ************************************************************ //
+
+class _ViewModel {
+  final List<Item> items;
+
+  // represent user actions, bound to each actions
+  final Function(String) onAddItem;
+  final Function(Item) onRemoveItem;
+  final Function() onRemoveItems;
+
+  _ViewModel({
+    this.items,
+    this.onAddItem,
+    this.onRemoveItem,
+    this.onRemoveItems,
+  });
+
+  factory _ViewModel.create(Store<AppState> store) {
+    _onAddItem(String body) {
+      store.dispatch(AddItemAction(body));
+    }
+
+    _onRemoveItem(Item item) {
+      store.dispatch(RemoveItemAction(item));
+    }
+
+    _onRemoveItems() {
+      store.dispatch(RemoveItemsAction());
+    }
+
+    return _ViewModel(
+      items: store.state.items,
+      onAddItem: _onAddItem,
+      onRemoveItem: _onRemoveItem,
+      onRemoveItems: _onRemoveItems,
     );
   }
 }
