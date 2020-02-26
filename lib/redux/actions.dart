@@ -24,5 +24,15 @@ class RemoveItemAction {
 
 // remove all items from app state
 class RemoveItemsAction {
+
+}
+
+class GetItemsAction {
   
+}
+
+class LoadedItemsAction {
+  final List<Item> items;
+
+  LoadedItemsAction(this.items);
 }

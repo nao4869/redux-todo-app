@@ -7,14 +7,20 @@ import 'package:redux_todo_app/models/model.dart';
 import 'package:redux_todo_app/redux/actions.dart';
 import 'package:redux_todo_app/redux/reducers.dart';
 
+import 'package:redux_dev_tools/redux_dev_tools.dart';
+import 'package:flutter_redux_dev_tools/flutter_redux_dev_tools.dart';
+
+import 'package:redux_todo_app/redux/middleware.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Store<AppState> store = Store<AppState>(
+    final DevToolsStore<AppState> store = DevToolsStore<AppState>(
       appStateReducer,
       initialState: AppState.initialState(),
+      middleware: [appStateMiddleware],
     );
 
     return StoreProvider<AppState>(
@@ -22,13 +28,23 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData.dark(),
-        home: MyHomePage(),
+        home: StoreBuilder<AppState>(
+          onInit: (store) => store.dispatch(
+            GetItemsAction(),
+          ),
+          builder: (BuildContext context, Store<AppState> store) =>
+              MyHomePage(store),
+        ),
       ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
+  final DevToolsStore<AppState> store;
+
+  MyHomePage(this.store);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,6 +64,9 @@ class MyHomePage extends StatelessWidget {
             RemoveItemsButton(viewModel), // call remove item actions
           ],
         ),
+      ),
+      drawer: Container(
+        child: ReduxDevTools(store),
       ),
     );
   }
@@ -70,15 +89,18 @@ class _AddItemState extends State<AddItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: 'Add an New Item',
+    return Padding(
+      padding: const EdgeInsets.all(18.0),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: 'Add an New Item',
+        ),
+        onSubmitted: (String s) {
+          widget.model.onAddItem(s);
+          controller.text = '';
+        },
       ),
-      onSubmitted: (String s) {
-        widget.model.onAddItem(s);
-        controller.text = '';
-      },
     );
   }
 }
@@ -119,9 +141,12 @@ class RemoveItemsButton extends StatelessWidget {
   // widget to display remove button
   @override
   Widget build(BuildContext context) {
-    return RaisedButton(
-      child: Text('Remove all items'),
-      onPressed: () => model.onRemoveItems(),
+    return Padding(
+      padding: const EdgeInsets.all(18.0),
+      child: RaisedButton(
+        child: Text('Remove all items'),
+        onPressed: () => model.onRemoveItems(),
+      ),
     );
   }
 }

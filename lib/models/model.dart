@@ -19,6 +19,15 @@ class Item {
     );
   }
 
+  Item.fromJson(Map json)
+      : body = json['body'],
+        id = json['id'];
+
+  // create map as id, body and turn it into json format
+  Map toJson() => {
+        'id': (id as int),
+        'body': body,
+      };
 }
 
 class AppState {
@@ -27,6 +36,13 @@ class AppState {
   AppState({
     @required this.items,
   });
+
+  // constructor take json item and covert into list
+  AppState.fromJson(Map json)
+      : items = (json['items'] as List).map((i) => Item.fromJson(i)).toList();
+
+  // take items and put into map with key being items
+  Map toJson() => {'items': items};
 
   // named constructor, immutable
   AppState.initialState() : items = List.unmodifiable(<Item>[]);
