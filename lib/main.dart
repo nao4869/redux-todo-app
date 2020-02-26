@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
     final DevToolsStore<AppState> store = DevToolsStore<AppState>(
       appStateReducer,
       initialState: AppState.initialState(),
-      middleware: [appStateMiddleware],
+      middleware: appStateMiddleware(),
     );
 
     return StoreProvider<AppState>(
@@ -124,6 +124,12 @@ class ItemListWidget extends StatelessWidget {
                 icon: Icon(Icons.delete),
                 onPressed: () => model.onRemoveItem(item),
               ),
+              trailing: Checkbox(
+                value: item.completed,
+                onChanged: (b) {
+                  model.onCompleted(item);
+                },
+              ),
             ),
           )
           .toList(),
@@ -157,12 +163,14 @@ class _ViewModel {
   final List<Item> items;
 
   // represent user actions, bound to each actions
+  final Function(Item) onCompleted;
   final Function(String) onAddItem;
   final Function(Item) onRemoveItem;
   final Function() onRemoveItems;
 
   _ViewModel({
     this.items,
+    this.onCompleted,
     this.onAddItem,
     this.onRemoveItem,
     this.onRemoveItems,
@@ -181,8 +189,13 @@ class _ViewModel {
       store.dispatch(RemoveItemsAction());
     }
 
+    _onCompleted(Item item) {
+      store.dispatch(ItemCompletedAction(item));
+    }
+
     return _ViewModel(
       items: store.state.items,
+      onCompleted: _onCompleted,
       onAddItem: _onAddItem,
       onRemoveItem: _onRemoveItem,
       onRemoveItems: _onRemoveItems,

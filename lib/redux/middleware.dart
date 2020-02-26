@@ -7,6 +7,37 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:redux_todo_app/models/model.dart';
 import 'package:redux_todo_app/redux/actions.dart';
 
+List<Middleware<AppState>> appStateMiddleware(
+    [AppState state = const AppState(items: [])]) {
+  final loadItems = _loadFromPrefs(state);
+  final saveItems = _saveToPrefs(state);
+
+  return [
+    TypedMiddleware<AppState, AddItemAction>(saveItems),
+    TypedMiddleware<AppState, RemoveItemAction>(saveItems),
+    TypedMiddleware<AppState, RemoveItemsAction>(saveItems),
+    TypedMiddleware<AppState, GetItemsAction>(loadItems),
+  ];
+}
+
+// returns middleware closure
+Middleware<AppState> _loadFromPrefs(AppState state) {
+  return (Store<AppState> store, action, NextDispatcher next) {
+    next(action);
+
+    loadedFromPrefs()
+        .then((state) => store.dispatch(LoadedItemsAction(state.items)));
+  };
+}
+
+Middleware<AppState> _saveToPrefs(AppState state) {
+  return (Store<AppState> store, action, NextDispatcher next) {
+    next(action);
+
+    saveToPrefs(store.state);
+  };
+}
+
 // save data into shared preferences store
 void saveToPrefs(AppState state) async {
   SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -29,20 +60,20 @@ Future<AppState> loadedFromPrefs() async {
   return AppState.initialState();
 }
 
-// actual middleware
-// next is function dispatcher to chain this middleware to next dispatcher if there is one
-void appStateMiddleware(
-    Store<AppState> store, action, NextDispatcher next) async {
-  next(action);
+// // actual middleware
+// // next is function dispatcher to chain this middleware to next dispatcher if there is one
+// void appStateMiddleware(
+//     Store<AppState> store, action, NextDispatcher next) async {
+//   next(action);
 
-  if (action is AddItemAction ||
-      action is RemoveItemsAction ||
-      action is RemoveItemsAction) {
-    saveToPrefs(store.state);
-  }
+//   if (action is AddItemAction ||
+//       action is RemoveItemsAction ||
+//       action is RemoveItemsAction) {
+//     saveToPrefs(store.state);
+//   }
 
-  if (action is GetItemsAction) {
-    await loadedFromPrefs()
-        .then((state) => store.dispatch(LoadedItemsAction(state.items)));
-  }
-}
+//   if (action is GetItemsAction) {
+//     await loadedFromPrefs()
+//         .then((state) => store.dispatch(LoadedItemsAction(state.items)));
+//   }
+// }

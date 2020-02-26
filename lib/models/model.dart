@@ -3,37 +3,48 @@ import 'package:flutter/foundation.dart';
 class Item {
   final int id;
   final String body;
+  final bool completed;
 
   Item({
     @required this.id,
     @required this.body,
+    this.completed = false,
   });
 
   // replace with new object
   // reducer uses copyWith and create new state
-  Item copyWith({int id, String body}) {
+  Item copyWith({int id, String body, bool completed}) {
     // ?? means to use current value if nothing passed
     return Item(
       id: id ?? this.id,
       body: body ?? this.body,
+      completed: completed ?? this.completed,
     );
   }
 
   Item.fromJson(Map json)
       : body = json['body'],
-        id = json['id'];
+        id = json['id'],
+        completed = json['completed'];
+
 
   // create map as id, body and turn it into json format
   Map toJson() => {
         'id': (id as int),
         'body': body,
+        'completed': completed,
       };
+
+  @override
+    String toString() {
+      return toJson().toString();
+    }
 }
 
 class AppState {
   final List<Item> items;
 
-  AppState({
+  const AppState({
     @required this.items,
   });
 
